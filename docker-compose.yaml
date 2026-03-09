@@ -1,5 +1,6 @@
 services:
   remoteterm:
+    container_name: meshcore-terminal
     build: .
     # image: jkingsman/remoteterm-meshcore:latest
 
@@ -12,8 +13,8 @@ services:
     ################################################
     # Set your serial device for passthrough here! #
     ################################################
-    # devices:
-    #   - /dev/serial/by-id/usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_Controller_0001-if00-port0:/dev/ttyUSB0
+    devices:
+      - /dev/serial/by-id/usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_Controller_0001-if00-port0:/dev/ttyUSB0
 
     environment:
       MESHCORE_DATABASE_PATH: data/meshcore.db
