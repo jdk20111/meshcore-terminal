@@ -12,8 +12,8 @@ services:
     ################################################
     # Set your serial device for passthrough here! #
     ################################################
-    devices:
-      - /dev/ttyUSB0:/dev/ttyUSB0
+    # devices:
+    #   - /dev/serial/by-id/usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_Controller_0001-if00-port0:/dev/ttyUSB0
 
     environment:
       MESHCORE_DATABASE_PATH: data/meshcore.db
@@ -24,9 +24,10 @@ services:
       # MESHCORE_SERIAL_BAUDRATE: 115200
 
       # TCP
-      # MESHCORE_TCP_HOST: 192.168.1.100
-      # MESHCORE_TCP_PORT: 4000
+      MESHCORE_TCP_HOST: 192.168.68.129
+      MESHCORE_TCP_PORT: 4000
 
       # Logging
-      # MESHCORE_LOG_LEVEL: INFO
+      MESHCORE_LOG_LEVEL: INFO
+      
     restart: unless-stopped
