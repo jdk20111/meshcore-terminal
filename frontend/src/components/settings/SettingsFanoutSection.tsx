@@ -1351,7 +1351,7 @@ export function SettingsFanoutSection({
         {addMenuOpen && (
           <div
             role="menu"
-            className="absolute left-0 top-full z-50 mt-2 min-w-56 rounded-md border border-input bg-background p-1 shadow-lg"
+            className="z-50 min-w-56 rounded-md border border-input bg-background p-1 shadow-lg"
             style={{ 
               maxHeight: '50vh', 
               overflowY: 'auto',
