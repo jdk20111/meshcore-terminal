@@ -1351,7 +1351,14 @@ export function SettingsFanoutSection({
         {addMenuOpen && (
           <div
             role="menu"
-            className="absolute left-0 top-full z-10 mt-2 min-w-56 rounded-md border border-input bg-background p-1 shadow-md"
+            className="absolute left-0 top-full z-50 mt-2 min-w-56 rounded-md border border-input bg-background p-1 shadow-lg"
+            style={{ 
+              maxHeight: '50vh', 
+              overflowY: 'auto',
+              position: 'fixed',
+              top: addMenuRef.current ? addMenuRef.current.getBoundingClientRect().bottom + 8 : 'auto',
+              left: addMenuRef.current ? addMenuRef.current.getBoundingClientRect().left : 'auto'
+            }}
           >
             {TYPE_OPTIONS.filter((opt) => opt.value !== 'bot' || !health?.bots_disabled).map(
               (opt) => (
