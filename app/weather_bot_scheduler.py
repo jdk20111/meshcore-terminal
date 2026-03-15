@@ -1,30 +1,32 @@
-"""Weather bot scheduler for automatic 7am Mountain Time posts."""
+"""Weather bot scheduler for automatic 12:40pm Mountain Time posts."""
 
 import asyncio
 import datetime
 import logging
-from pathlib import Path
 
 from app.fanout.bot_exec import execute_bot_code, process_bot_response
-from app.models import SendChannelMessageRequest
-from app.routers.messages import send_channel_message
 
 logger = logging.getLogger(__name__)
-
-# Path to weather bot code
-WEATHER_BOT_PATH = Path(__file__).parent.parent / "weather-bot" / "weather-bot.py"
 
 # Target channel for weather posts
 WEATHER_CHANNEL_KEY = None  # Will be set to CDC-BOTS channel key
 
 
-async def load_weather_bot_code() -> str:
-    """Load the weather bot Python code from file."""
+async def get_weather_bot_code() -> str:
+    """Get the weather bot code from the bot system."""
     try:
-        with open(WEATHER_BOT_PATH, 'r', encoding='utf-8') as f:
-            return f.read()
+        from app.repository import FanoutRepository
+        
+        # Look for weather bot in database
+        fanouts = await FanoutRepository.get_all()
+        for fanout in fanouts:
+            if fanout.name and "weather" in fanout.name.lower():
+                return fanout.config.get("code", "")
+        
+        logger.error("Weather bot not found in database")
+        return ""
     except Exception as e:
-        logger.error(f"Failed to load weather bot code: {e}")
+        logger.error(f"Failed to get weather bot from database: {e}")
         return ""
 
 
@@ -85,14 +87,14 @@ async def trigger_weather_bot() -> None:
             logger.error("Cannot trigger weather bot: CDC-BOTS channel not found")
             return
     
-    # Load weather bot code
-    bot_code = await load_weather_bot_code()
+    # Get weather bot code from database
+    bot_code = await get_weather_bot_code()
     if not bot_code:
-        logger.error("Cannot trigger weather bot: failed to load code")
+        logger.error("Cannot trigger weather bot: failed to get code from database")
         return
     
     try:
-        # Execute bot code with simulated 7am trigger
+        # Execute bot code with simulated 12:40pm trigger
         # We pass empty message text since this is a time-based trigger
         response = await asyncio.get_event_loop().run_in_executor(
             None,
