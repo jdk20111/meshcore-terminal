@@ -57,18 +57,18 @@ def bot(
     # Apply correct Mountain Time offset (user is already in MT, so no conversion needed)
     mt_time = now  # User's local time is already Mountain Time
     
-    is_1_15_mt = mt_time.hour == 13 and mt_time.minute >= 15 and mt_time.minute < 20  # 5-minute window
+    is_1_20_mt = mt_time.hour == 13 and mt_time.minute >= 20 and mt_time.minute < 25  # 5-minute window
     
     # Manual trigger: exactly "weather" (case-insensitive)
     is_weather_trigger = message_text.strip().lower() == "weather"
     
-    # Auto-trigger: any message at 1:15pm MT (to allow scheduled posts)
-    is_time_trigger = is_1_15_mt and message_text.strip() != ""
+    # Auto-trigger: any message at 1:20pm MT (to allow scheduled posts)
+    is_time_trigger = is_1_20_mt and message_text.strip() != ""
     
     # Respond if it's time trigger OR manual weather trigger
     if is_time_trigger or is_weather_trigger:
         if is_time_trigger:
-            print(f"*** BOT RESPONDING - TIME TRIGGER: 1:15pm MT ***")
+            print(f"*** BOT RESPONDING - TIME TRIGGER: 1:20pm MT ***")
         else:
             print(f"*** BOT RESPONDING TO WEATHER REQUEST - DUAL POST ***")
         
