@@ -54,9 +54,8 @@ def bot(
         
         return dst_start <= dt < dst_end
     
-    # Apply correct Mountain Time offset
-    mt_offset = -6 if is_mdst(now) else -7
-    mt_time = now + datetime.timedelta(hours=mt_offset)
+    # Apply correct Mountain Time offset (user is already in MT, so no conversion needed)
+    mt_time = now  # User's local time is already Mountain Time
     
     is_1_15_mt = mt_time.hour == 13 and mt_time.minute >= 15 and mt_time.minute < 20  # 5-minute window
     
