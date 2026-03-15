@@ -78,6 +78,16 @@ async def lifespan(app: FastAPI):
     startup_radio_task = asyncio.create_task(_startup_radio_connect_and_setup())
     app.state.startup_radio_task = startup_radio_task
 
+    # Start weather bot auto scheduler
+    try:
+        import sys
+        sys.path.append('weather-bot')
+        from weather_bot import start_weather_auto_scheduler
+        await start_weather_auto_scheduler()
+        logger.info("Weather bot auto scheduler started")
+    except Exception as e:
+        logger.warning("Failed to start weather bot auto scheduler: %s", e)
+
     yield
 
     logger.info("Shutting down")

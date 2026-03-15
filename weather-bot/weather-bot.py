@@ -1,3 +1,82 @@
+"""Weather bot with automatic triggering during scheduled time windows."""
+
+import asyncio
+import datetime
+import logging
+
+# Global scheduler task
+_auto_scheduler_task = None
+_last_auto_trigger_date = None
+
+logger = logging.getLogger(__name__)
+
+
+async def start_weather_auto_scheduler():
+    """Start the auto scheduler for weather bot triggering."""
+    global _auto_scheduler_task
+    
+    if _auto_scheduler_task is None or _auto_scheduler_task.done():
+        _auto_scheduler_task = asyncio.create_task(_weather_auto_scheduler())
+        logger.info("Weather auto scheduler started")
+
+
+async def _weather_auto_scheduler():
+    """Background task that automatically triggers weather posting."""
+    global _last_auto_trigger_date
+    
+    while True:
+        try:
+            now = datetime.datetime.now()
+            current_date = now.date()
+            
+            # Check if it's 1:30-1:35pm MDT window and we haven't triggered today
+            is_1_30_window = now.hour == 13 and now.minute >= 30 and now.minute < 35
+            
+            if is_1_30_window and _last_auto_trigger_date != current_date:
+                logger.info("Auto-triggering weather bot for 1:30pm MDT window")
+                
+                try:
+                    # Send auto trigger message
+                    from app.models import SendChannelMessageRequest
+                    from app.routers.messages import send_channel_message
+                    from app.repository import ChannelRepository
+                    
+                    # Get CDC-BOTS channel key
+                    channels = await ChannelRepository.get_all()
+                    channel_key = None
+                    for channel in channels:
+                        if channel.name and "CDC-BOTS" in channel.name.upper():
+                            channel_key = channel.key
+                            break
+                    
+                    if channel_key:
+                        request = SendChannelMessageRequest(
+                            channel_key=channel_key, 
+                            text="auto weather trigger"
+                        )
+                        await send_channel_message(request)
+                        logger.info("Sent auto trigger message to CDC-BOTS")
+                        _last_auto_trigger_date = current_date
+                        
+                        # Wait 10 minutes to avoid multiple triggers
+                        await asyncio.sleep(600)
+                    else:
+                        logger.warning("CDC-BOTS channel not found")
+                        
+                except Exception as e:
+                    logger.error(f"Failed to send auto trigger: {e}")
+            else:
+                # Check every 30 seconds
+                await asyncio.sleep(30)
+                
+        except asyncio.CancelledError:
+            logger.info("Weather auto scheduler cancelled")
+            break
+        except Exception as e:
+            logger.error(f"Error in weather auto scheduler: {e}")
+            await asyncio.sleep(30)
+
+
 def bot(
     sender_name: str | None,
     sender_key: str | None,
@@ -57,18 +136,18 @@ def bot(
     # Apply correct Mountain Time offset (user is already in MT, so no conversion needed)
     mt_time = now  # User's local time is already Mountain Time
     
-    is_1_20_mt = mt_time.hour == 13 and mt_time.minute >= 20 and mt_time.minute < 25  # 5-minute window
+    is_1_30_mt = mt_time.hour == 13 and mt_time.minute >= 30 and mt_time.minute < 35  # 5-minute window
     
     # Manual trigger: exactly "weather" (case-insensitive)
     is_weather_trigger = message_text.strip().lower() == "weather"
     
-    # Auto-trigger: any message at 1:20pm MT (to allow scheduled posts)
-    is_time_trigger = is_1_20_mt and message_text.strip() != ""
+    # Auto-trigger: any message at 1:30pm MDT (to allow scheduled posts)
+    is_time_trigger = is_1_30_mt and message_text.strip() != ""
     
     # Respond if it's time trigger OR manual weather trigger
     if is_time_trigger or is_weather_trigger:
         if is_time_trigger:
-            print(f"*** BOT RESPONDING - TIME TRIGGER: 1:20pm MT ***")
+            print(f"*** BOT RESPONDING - TIME TRIGGER: 1:30pm MDT ***")
         else:
             print(f"*** BOT RESPONDING TO WEATHER REQUEST - DUAL POST ***")
         
