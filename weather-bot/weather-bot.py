@@ -35,9 +35,28 @@ def bot(
     
     # Check if it's 7am Mountain Time (MDT/MST) for daily forecast
     now = datetime.datetime.now()
-    # Convert to Mountain Time (UTC-6 for MDT, UTC-7 for MST)
-    # For simplicity, we'll use UTC-6 (MDT) - adjust if needed for MST
-    mt_time = now - datetime.timedelta(hours=6)
+    
+    # Proper Mountain Time calculation with DST handling
+    # Mountain Time is UTC-7 (MST) or UTC-6 (MDT)
+    # DST in US: Second Sunday in March to first Sunday in November
+    def is_mdst(dt):
+        """Check if given datetime is during Mountain Daylight Time"""
+        year = dt.year
+        # DST starts: Second Sunday in March at 2am local time
+        march_start = datetime.datetime(year, 3, 1)
+        days_to_sunday = (6 - march_start.weekday()) % 7
+        dst_start = march_start + datetime.timedelta(days=days_to_sunday + 7, hours=2)
+        
+        # DST ends: First Sunday in November at 2am local time  
+        november_start = datetime.datetime(year, 11, 1)
+        days_to_sunday_nov = (6 - november_start.weekday()) % 7
+        dst_end = november_start + datetime.timedelta(days=days_to_sunday_nov, hours=2)
+        
+        return dst_start <= dt < dst_end
+    
+    # Apply correct Mountain Time offset
+    mt_offset = -6 if is_mdst(now) else -7
+    mt_time = now + datetime.timedelta(hours=mt_offset)
     
     is_7am_mt = mt_time.hour == 7 and mt_time.minute < 5  # 5-minute window
     
