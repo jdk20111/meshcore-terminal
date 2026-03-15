@@ -78,15 +78,6 @@ async def lifespan(app: FastAPI):
     startup_radio_task = asyncio.create_task(_startup_radio_connect_and_setup())
     app.state.startup_radio_task = startup_radio_task
 
-    # Start weather bot scheduler for 12:40pm MT automatic posts
-    try:
-        from app.weather_bot_scheduler import start_weather_bot_scheduler
-        weather_scheduler_task = await start_weather_bot_scheduler()
-        app.state.weather_scheduler_task = weather_scheduler_task
-        logger.info("Weather bot scheduler started (12:40pm MT)")
-    except Exception as e:
-        logger.warning("Failed to start weather bot scheduler: %s", e)
-
     yield
 
     logger.info("Shutting down")
@@ -94,15 +85,6 @@ async def lifespan(app: FastAPI):
         startup_radio_task.cancel()
         try:
             await startup_radio_task
-        except asyncio.CancelledError:
-            pass
-    
-    # Stop weather bot scheduler
-    weather_scheduler_task = getattr(app.state, 'weather_scheduler_task', None)
-    if weather_scheduler_task and not weather_scheduler_task.done():
-        weather_scheduler_task.cancel()
-        try:
-            await weather_scheduler_task
         except asyncio.CancelledError:
             pass
     

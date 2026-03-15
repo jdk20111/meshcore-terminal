@@ -33,7 +33,7 @@ def bot(
 
     import datetime
     
-    # Check if it's 7am Mountain Time (MDT/MST) for daily forecast
+    # Check if it's 12:40pm Mountain Time (MDT/MST) for daily forecast
     now = datetime.datetime.now()
     
     # Proper Mountain Time calculation with DST handling
@@ -58,15 +58,18 @@ def bot(
     mt_offset = -6 if is_mdst(now) else -7
     mt_time = now + datetime.timedelta(hours=mt_offset)
     
-    is_7am_mt = mt_time.hour == 7 and mt_time.minute < 5  # 5-minute window
+    is_12_40_mt = mt_time.hour == 12 and mt_time.minute >= 40 and mt_time.minute < 45  # 5-minute window
     
     # Manual trigger: exactly "weather" (case-insensitive)
     is_weather_trigger = message_text.strip().lower() == "weather"
     
-    # Respond if it's 7am MT OR manual weather trigger
-    if is_7am_mt or is_weather_trigger:
-        if is_7am_mt:
-            print(f"*** BOT RESPONDING - DUAL POST: CURRENT + FORECAST ***")
+    # Auto-trigger: any message at 12:40pm MT (to allow scheduled posts)
+    is_time_trigger = is_12_40_mt and message_text.strip() != ""
+    
+    # Respond if it's time trigger OR manual weather trigger
+    if is_time_trigger or is_weather_trigger:
+        if is_time_trigger:
+            print(f"*** BOT RESPONDING - TIME TRIGGER: 12:40pm MT ***")
         else:
             print(f"*** BOT RESPONDING TO WEATHER REQUEST - DUAL POST ***")
         
